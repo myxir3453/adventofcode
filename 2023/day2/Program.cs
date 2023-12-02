@@ -34,6 +34,19 @@ namespace AdventOfCode.Day2
                 .Sum();
             Console.WriteLine(sumOfPossibleGamesId);
 
+            // part 2
+            int part2Value = games.Select(game =>
+                {
+                    int maxRed = game.Subsets.Select(subset => subset.Red).Max();
+                    int maxGreen = game.Subsets.Select(subset => subset.Green).Max();
+                    int maxBlue = game.Subsets.Select(subset => subset.Blue).Max();
+                    int power = maxRed * maxGreen * maxBlue;
+                    return power;
+                }
+            )
+            .Sum();
+            Console.WriteLine(part2Value);
+
             sw.Stop();
             var elapsedTime = sw.Elapsed.TotalMilliseconds;
 
