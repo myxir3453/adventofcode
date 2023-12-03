@@ -77,6 +77,40 @@ namespace AdventOfCode.Day3
 
             int partNumberSum = partNumbers.Sum(number => number.Value);
             Console.WriteLine(partNumberSum);
+
+            // part 2 - * symbol that is adjacent to exactly two part numbers
+            int part2Sum = 0;
+            foreach (Symbol symbol in symbols)
+            {
+                if (symbol.Character != '*')
+                    continue;
+
+                HashSet<Number> adjacent = new HashSet<Number>();
+
+                for (int row = Math.Max(0, symbol.Row - 1);row < Math.Min(lineLength, symbol.Row + 2); row++)
+                {
+                    for (int column = Math.Max(0, symbol.Column - 1); column < Math.Min(lineLength, symbol.Column + 2); column++)
+                    {
+                        //Console.WriteLine($"searching for number at ({row}, {column})");
+                        if (numberMatrix[row, column] != null)
+                        {
+                            adjacent.Add(numberMatrix[row, column]);
+                        }
+                    }
+                }
+
+                if (adjacent.Count != 2)
+                    continue;
+
+                int product = 1;
+                foreach (Number number in adjacent)
+                {
+                    product *= number.Value;
+                }
+                part2Sum += product;
+            }
+
+            Console.WriteLine(part2Sum);
         }
     }
 }
