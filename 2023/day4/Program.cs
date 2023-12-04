@@ -25,6 +25,27 @@ namespace AdventOfCode.Day4
             // part 1
             int totalWorth = cards.Sum(card => card.Matches == 0 ? 0 : (1 << (card.Matches - 1)));
             Console.WriteLine(totalWorth);
+
+            // part 2
+            int[] unscratched = new int[cards.Length + 1];
+            int[] scratched = new int[cards.Length + 1];
+
+            foreach (Card card in cards)
+            {
+                // add one unscratched card with the current number
+                unscratched[card.Number]++;
+                
+                // scratch all cards with current number
+                scratched[card.Number] += unscratched[card.Number];
+                for (int i = 1;i <= card.Matches;i++)
+                {
+                    unscratched[card.Number + i] += unscratched[card.Number];
+                }
+                unscratched[card.Number] = 0;
+            }
+
+            int totalScratchedCards = scratched.Sum();
+            Console.WriteLine(totalScratchedCards);
         }
 
         private Card ProcessCard(string line)
