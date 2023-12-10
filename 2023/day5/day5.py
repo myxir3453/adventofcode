@@ -1,8 +1,9 @@
 import math
+import queue
 
-fileName = 'testinput'
+fileName = 'input'
 
-def read_next_mapping():
+def read_next_map(fin):
     fin.readline()
     mapping = []
     keep_reading = True
@@ -21,85 +22,141 @@ def read_next_mapping():
                 })
     return mapping
 
-def apply_mapping(value, mapping):
-    for pair in mapping:
-        destination_range = pair['destination_range']
-        source_range = pair['source_range']
-        if value in source_range:
-            return destination_range[0] + (value - source_range[0])
-    return value
+def map_number(number, source_range, destination_range):
+    return destination_range[0] + number - source_range[0]
 
-def apply_mapping_to_range(r, mapping):
-    # list of ranges
-    result = []
+def get_ranges_intersection(x, y):
+    intersection = range(max(x.start, y.start), min(x.stop, y.stop))
+    if len(intersection) == 0:
+        return None
+    return intersection
+
+def get_difference(x, y):
+    intersection = get_ranges_intersection(x, y)
+
+    if intersection == None:
+        return x
+
+    i = intersection[0]
+    j = intersection[-1]
+
+    if y[0] <= x[0] and y[-1] < x[-1]:
+        return range(j + 1, x.stop)
+    if y[0] > x[0] and y[-1] < x[-1]:
+        return [range(x.start, i), range(j + 1, x.stop)]
+    if y[0] > x[0] and y[-1] >= x[-1]:
+        return range(x.start, i)
+
+def map_range(x, source_range, destination_range):
+    y = source_range
+
+    intersection = get_ranges_intersection(x, y)
     
-    for pair in mapping:
-        destination_range = pair['destination_range']
-        source_range = pair['source_range']
-
-        intmin = max([r[0], source_range[0]])
-        intmax = min([r[-1], source_range[-1]])
-
-        # no intersection, this mapping cannot transform any elements
-        if intmin > intmax:
-            continue
-        
-        mapped_intmin = min(destination_range) + intmin - min(source_range)
-        mapped_intmax = min(destination_range) + intmax - min(source_range)
-
-        # full intersection, this mapping can transform all elements
-        if intmin == r[0] and intmax == r[-1]:
-            result = [destination_range]
-            break
-
-        # intersection found
-        if min(r) < min(source_range):
-            result.append(range(min(r), intmin + 1))
-            result.append(range(mapped_intmin, mapped_intmax + 1))
-            result.append(range(intmax, max(source_range) + 1))
-        if min(r) > min(source_range):
-            result.append(range(mapped_intmin, mapped_intmax + 1))
-            result.append(range(intmax, max(r) + 1))
-        
-    if len(result) == 0:
-        result = [r]
+    if intersection == None:
+        return []
+    if intersection == x:
+        return [range(map_number(x.start, source_range, destination_range), \
+                      map_number(x.stop, source_range, destination_range))]
     
-    return result
+    i = intersection[0]
+    j = intersection[-1]
 
+    if y[0] <= x[0] and y[-1] < x[-1]:
+        # return map_range(range(x.start, j + 1), source_range, destination_range) + [range(j + 1, x.stop)]
+        return map_range(range(x.start, j + 1), source_range, destination_range)
+    if y[0] > x[0] and y[-1] < x[-1]:
+        # return [range(x.start, i)] + map_range(y, source_range, destination_range) + [range(j + 1, x.stop)]
+        return map_range(y, source_range, destination_range)
+    if y[0] > x[0] and y[-1] >= x[-1]:
+        # return [range(x.start, i)] + map_range(range(i, x.stop), source_range, destination_range) 
+        return map_range(range(i, x.stop), source_range, destination_range) 
+
+# tests
+assert get_difference(range(10, 20), range(0, 5)) == range(10, 20)
+assert get_difference(range(10, 20), range(0, 11)) == range(11, 20)
+assert get_difference(range(10, 20), range(0, 15)) == range(15, 20)
+assert get_difference(range(10, 20), range(10, 15)) == range(15, 20)
+assert get_difference(range(10, 20), range(14, 17)) == [range(10, 14), range(17, 20)]
+assert get_difference(range(10, 20), range(14, 20)) == range(10, 14)
+assert get_difference(range(10, 20), range(14, 25)) == range(10, 14)
+assert get_difference(range(10, 20), range(19, 25)) == range(10, 19)
+
+# assert map_range(range(10, 20), range(0, 5), range(100, 105)) == [range(10, 20)]
+# assert map_range(range(10, 20), range(0, 11), range(100, 111)) == [range(110, 111), range(11, 20)]
+# assert map_range(range(10, 20), range(0, 15), range(100, 115)) == [range(110, 115), range(15, 20)]
+# assert map_range(range(10, 20), range(10, 15), range(110, 115)) == [range(110, 115), range(15, 20)]
+# assert map_range(range(10, 20), range(14, 17), range(114, 117)) == [range(10, 14), range(114, 117), range(17, 20)]
+# assert map_range(range(10, 20), range(14, 20), range(114, 120)) == [range(10, 14), range(114, 120)]
+# assert map_range(range(10, 20), range(14, 25), range(114, 125)) == [range(10, 14), range(114, 120)]
+# assert map_range(range(10, 20), range(19, 25), range(119, 125)) == [range(10, 19), range(119, 120)]
+
+assert map_range(range(10, 20), range(0, 5), range(100, 105)) == []
+assert map_range(range(10, 20), range(0, 11), range(100, 111)) == [range(110, 111)]
+assert map_range(range(10, 20), range(0, 15), range(100, 115)) == [range(110, 115)]
+assert map_range(range(10, 20), range(10, 15), range(110, 115)) == [range(110, 115)]
+assert map_range(range(10, 20), range(14, 17), range(114, 117)) == [range(114, 117)]
+assert map_range(range(10, 20), range(14, 20), range(114, 120)) == [range(114, 120)]
+assert map_range(range(10, 20), range(14, 25), range(114, 125)) == [range(114, 120)]
+assert map_range(range(10, 20), range(19, 25), range(119, 125)) == [range(119, 120)]
+
+all_maps = []
 with open(fileName, 'r') as fin:
     line = fin.readline()
     seeds = [int(x) for x in line[len("seeds: "):].split()]
     fin.readline()
-    #print(seeds)
+    all_maps = [read_next_map(fin) for i in range(0, 7)]
 
-    all_mappings = []
+min_location = 1 << 32
 
-    for i in range(7):
-        mapping = read_next_mapping()
-        all_mappings.append(mapping)
-    
-    # part 1
-    min_location = 1 << 32
-    for seed in seeds:
-        v = seed
-        for mapping in all_mappings:
-            v = apply_mapping(v, mapping)
-        if v < min_location:
-            min_location = v
-    
-    #print(min_location)
+for i in range(0, int(len(seeds) / 2)):
+    print('i = ' + str(i))
+    seed_range = range(seeds[i * 2], seeds[i * 2] + seeds[i * 2 + 1])
+    mapped = [seed_range]
+    unmapped = []
 
-    # part 2
-    min_location = 1 << 32
-    for i in range(0, math.floor(len(seeds) / 2)):
-        ranges = [range(seeds[i * 2], seeds[i * 2] + seeds[i * 2 + 1])]
-        for mapping in all_mappings:
-            for r in ranges:
-                results = apply_mapping_to_range(r, mapping)
-                #print(results)
-                for result in results:
-                    ranges.append(result)
-        if min_location > min([min(r) for r in ranges]):
-            min_location = min([min(r) for r in ranges])
-        
-    #print(min_location)
+    #print(mapped)
+    map_index = 0
+
+    for map in all_maps:
+        print('map index ' + str(map_index))
+        unmapped += [x for x in mapped]
+        mapped = []
+
+        pair_index = 0
+
+        for pair in map:
+            print('pair index ' + str(pair_index))
+
+            source_range = pair['source_range']
+            destination_range = pair['destination_range']
+
+            to_add = []
+            for range_index in range(len(unmapped)):
+                print('range index ' + str(range_index))
+
+                #if i == 0 and map_index == 0 and pair_index == 1 and range_index == 0:
+                    #print('unmapped: ' + str(unmapped), 'mapped: ' + str(mapped))
+
+                mapped += map_range(unmapped[range_index], source_range, destination_range)
+                difference = get_difference(unmapped[range_index], source_range)
+                unmapped[range_index] = difference[0]
+                if len(difference) > 1:
+                    to_add += difference[1:]
+            while None in unmapped:
+                unmapped.remove(None)
+            unmapped += to_add
+
+            #print('unmapped: ' + str(unmapped), 'mapped: ' + str(mapped))
+
+            pair_index += 1
+
+        map_index += 1
+
+    for r in unmapped:
+        if r.start < min_location:
+            min_location = r.start
+    for r in mapped:
+        if r.start < min_location:
+            min_location = r.start
+
+print(min_location)
