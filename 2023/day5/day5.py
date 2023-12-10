@@ -1,5 +1,6 @@
 import math
 import queue
+#import pdb; pdb.set_trace()
 
 fileName = 'input'
 
@@ -35,17 +36,19 @@ def get_difference(x, y):
     intersection = get_ranges_intersection(x, y)
 
     if intersection == None:
-        return x
+        return [x]
 
     i = intersection[0]
     j = intersection[-1]
 
+    if y[0] <= x[0] and y[-1] >= x[-1]:
+        return []
     if y[0] <= x[0] and y[-1] < x[-1]:
-        return range(j + 1, x.stop)
+        return [range(j + 1, x.stop)]
     if y[0] > x[0] and y[-1] < x[-1]:
         return [range(x.start, i), range(j + 1, x.stop)]
     if y[0] > x[0] and y[-1] >= x[-1]:
-        return range(x.start, i)
+        return [range(x.start, i)]
 
 def map_range(x, source_range, destination_range):
     y = source_range
@@ -72,14 +75,16 @@ def map_range(x, source_range, destination_range):
         return map_range(range(i, x.stop), source_range, destination_range) 
 
 # tests
-assert get_difference(range(10, 20), range(0, 5)) == range(10, 20)
-assert get_difference(range(10, 20), range(0, 11)) == range(11, 20)
-assert get_difference(range(10, 20), range(0, 15)) == range(15, 20)
-assert get_difference(range(10, 20), range(10, 15)) == range(15, 20)
+assert get_difference(range(10, 20), range(0, 5)) == [range(10, 20)]
+assert get_difference(range(10, 20), range(0, 11)) == [range(11, 20)]
+assert get_difference(range(10, 20), range(0, 15)) == [range(15, 20)]
+assert get_difference(range(10, 20), range(10, 15)) == [range(15, 20)]
 assert get_difference(range(10, 20), range(14, 17)) == [range(10, 14), range(17, 20)]
-assert get_difference(range(10, 20), range(14, 20)) == range(10, 14)
-assert get_difference(range(10, 20), range(14, 25)) == range(10, 14)
-assert get_difference(range(10, 20), range(19, 25)) == range(10, 19)
+assert get_difference(range(10, 20), range(14, 20)) == [range(10, 14)]
+assert get_difference(range(10, 20), range(14, 25)) == [range(10, 14)]
+assert get_difference(range(10, 20), range(19, 25)) == [range(10, 19)]
+assert get_difference(range(10, 20), range(5, 25)) == []
+assert get_difference(range(81, 95), range(25, 95)) == []
 
 # assert map_range(range(10, 20), range(0, 5), range(100, 105)) == [range(10, 20)]
 # assert map_range(range(10, 20), range(0, 11), range(100, 111)) == [range(110, 111), range(11, 20)]
@@ -98,6 +103,7 @@ assert map_range(range(10, 20), range(14, 17), range(114, 117)) == [range(114, 1
 assert map_range(range(10, 20), range(14, 20), range(114, 120)) == [range(114, 120)]
 assert map_range(range(10, 20), range(14, 25), range(114, 125)) == [range(114, 120)]
 assert map_range(range(10, 20), range(19, 25), range(119, 125)) == [range(119, 120)]
+assert map_range(range(10, 20), range(5, 25), range(105, 125)) == [range(110, 120)]
 
 all_maps = []
 with open(fileName, 'r') as fin:
@@ -109,7 +115,6 @@ with open(fileName, 'r') as fin:
 min_location = 1 << 32
 
 for i in range(0, int(len(seeds) / 2)):
-    print('i = ' + str(i))
     seed_range = range(seeds[i * 2], seeds[i * 2] + seeds[i * 2 + 1])
     mapped = [seed_range]
     unmapped = []
@@ -118,28 +123,24 @@ for i in range(0, int(len(seeds) / 2)):
     map_index = 0
 
     for map in all_maps:
-        print('map index ' + str(map_index))
+        #print('new map')
         unmapped += [x for x in mapped]
         mapped = []
 
         pair_index = 0
 
         for pair in map:
-            print('pair index ' + str(pair_index))
-
             source_range = pair['source_range']
             destination_range = pair['destination_range']
 
             to_add = []
             for range_index in range(len(unmapped)):
-                print('range index ' + str(range_index))
-
-                #if i == 0 and map_index == 0 and pair_index == 1 and range_index == 0:
-                    #print('unmapped: ' + str(unmapped), 'mapped: ' + str(mapped))
-
                 mapped += map_range(unmapped[range_index], source_range, destination_range)
                 difference = get_difference(unmapped[range_index], source_range)
-                unmapped[range_index] = difference[0]
+                if len(difference) == 0:
+                    unmapped[range_index] = None
+                if len(difference) > 0:
+                    unmapped[range_index] = difference[0]
                 if len(difference) > 1:
                     to_add += difference[1:]
             while None in unmapped:
@@ -147,10 +148,6 @@ for i in range(0, int(len(seeds) / 2)):
             unmapped += to_add
 
             #print('unmapped: ' + str(unmapped), 'mapped: ' + str(mapped))
-
-            pair_index += 1
-
-        map_index += 1
 
     for r in unmapped:
         if r.start < min_location:
