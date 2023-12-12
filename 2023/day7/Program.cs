@@ -23,9 +23,9 @@ namespace AdventOfCode.Day7
 
         public static readonly Dictionary<char, int> CardValues = new Dictionary<char, int>()
         {
-            { 'A', 14 }, { 'K', 13 }, { 'Q', 12 }, { 'J', 11 }, { 'T', 10 },
+            { 'A', 14 }, { 'K', 13 }, { 'Q', 12 }, { 'T', 10 },
             { '9', 9 },  { '8', 8 },  { '7', 7 },  { '6', 6 },  { '5', 5 },
-            { '4', 4 },  { '3', 3 },  { '2', 2 }
+            { '4', 4 },  { '3', 3 },  { '2', 2 }, { 'J', 1 }
         };
 
         public class Hand : IComparable
@@ -52,24 +52,91 @@ namespace AdventOfCode.Day7
                         else if (charGroups.Count() == 2)
                         {
                             if (charGroups[0].Count == 4)
-                                _cardType = CardType.FourOfAKind;
+                            {
+                                if (charGroups[0].Char == 'J' || charGroups[1].Char == 'J')
+                                {
+                                    _cardType = CardType.FiveOfAKind;
+                                }
+                                else
+                                {
+                                    _cardType = CardType.FourOfAKind;
+                                }
+                            }
                             else
-                                _cardType = CardType.FullHouse;
+                            {
+                                if (charGroups[0].Char == 'J' || charGroups[1].Char == 'J')
+                                {
+                                    _cardType = CardType.FiveOfAKind;
+                                }
+                                else
+                                {
+                                    _cardType = CardType.FullHouse;
+                                }
+                            }
                         }
                         else if (charGroups.Count() == 3)
                         {
                             if (charGroups[0].Count == 3)
-                                _cardType = CardType.ThreeOfAKind;
+                            {
+                                if (charGroups[0].Char == 'J' ||
+                                    charGroups[1].Char == 'J' ||
+                                    charGroups[2].Char == 'J')
+                                {
+                                    _cardType = CardType.FourOfAKind;
+                                }
+                                else
+                                {
+                                    _cardType = CardType.ThreeOfAKind;
+                                }
+                            }
                             else
-                                _cardType = CardType.TwoPair;
+                            {
+                                if (charGroups[0].Char == 'J' ||
+                                    charGroups[1].Char == 'J')
+                                {
+                                    _cardType = CardType.FourOfAKind;
+                                }
+                                else if (charGroups[2].Char == 'J')
+                                {
+                                    _cardType = CardType.FullHouse;
+                                }
+                                else
+                                {
+                                    _cardType = CardType.TwoPair;
+                                }
+                            }
                         }
                         else if (charGroups.Count() == 4)
                         {
-                            _cardType = CardType.OnePair;
+                            if (charGroups[0].Char == 'J')
+                            {
+                                _cardType = CardType.ThreeOfAKind;
+                            }
+                            else if (charGroups[1].Char == 'J' ||
+                                     charGroups[2].Char == 'J' ||
+                                     charGroups[3].Char == 'J')
+                            {
+                                _cardType = CardType.ThreeOfAKind;
+                            }
+                            else
+                            {
+                                _cardType = CardType.OnePair;
+                            }
                         }
                         else
                         {
-                            _cardType = CardType.HighCard;
+                            if (charGroups[0].Char == 'J' ||
+                                charGroups[1].Char == 'J' ||
+                                charGroups[2].Char == 'J' ||
+                                charGroups[3].Char == 'J' ||
+                                charGroups[4].Char == 'J')
+                            {
+                                _cardType = CardType.OnePair;    
+                            }
+                            else
+                            {
+                                _cardType = CardType.HighCard;
+                            }
                         }
                     }
                     return _cardType.Value;
