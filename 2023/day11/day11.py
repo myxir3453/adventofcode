@@ -12,12 +12,13 @@ empty_rows = [row for row in range(height)
 empty_cols = [col for col in range(width)
     if set([lines[row][col] for row in range(height)]) == {'.'}]
 costs = [[1 for col in range(width)] for row in range(height)]
+multiplier = 1000000
 for row in empty_rows:
     for col in range(width):
-        costs[row][col] = 2
+        costs[row][col] = multiplier
 for col in empty_cols:
     for row in range(height):
-        costs[row][col] = 2
+        costs[row][col] = multiplier
 
 gals = []
 for row in range(height):
@@ -28,6 +29,7 @@ for row in range(height):
 sumdist = 0
 
 for gal1id in range(len(gals) - 1):
+    print(str(1+gal1id) + '/' + str(len(gals)))
     gal1 = gals[gal1id]
     dist = [[None for col in range(width)] for row in range(height)]
     dist[gal1[0]][gal1[1]] = 0
