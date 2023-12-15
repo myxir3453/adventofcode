@@ -1,52 +1,61 @@
 import functools
 
-def get_mirror_index(v):
-    for i in range(1, len(v)):
-        if not any([l != r for l, r in zip(v[i - 1::-1], v[i:])]):
+def to_binary(pattern : list[str]):
+    return [int(''.join(map(lambda ch:'1' if ch=='#' else '0', line)), base=2)
+            for line in pattern]
+
+def get_mirror_index(pattern : list[str], fixed : bool) -> int:
+    binpat = to_binary(pattern)
+    for i in range(1, len(binpat)):
+        pairs = [(l, r) for (l, r) in zip(binpat[i - 1::-1], binpat[i:])]
+        differences = [(l, r) for (l, r) in pairs if l != r]
+        if not any(differences):
+            print(pairs)
             return i
     return 0
 
 patterns = [[]]
-with open('input', 'r') as fin:
+with open('testinput', 'r') as fin:
     for line in fin:
         line = line.rstrip()
+
         if line != '':
             patterns[-1].append(line)
         else:
             patterns.append([])
 
-total = 0
+total_part1 = 0
+total_part2 = 0
 for pattern in patterns:
     print('find horizontal line of reflection')
-    rows = []
-    rowdic = {}
-    cnum = 0
-    for row in pattern:
-        if row not in rowdic:
-            cnum += 1
-            rowdic[row] = cnum
-        rows.append(rowdic[row])
-    print(rows)
-    ahz = get_mirror_index(rows)
-    print(ahz)
+    ahz = get_mirror_index(pattern, 0)
+    if ahz != 0:
+        print(ahz)
+        total_part1 += ahz * 100
+    # else:
+    #     print('fix smudge for horizontal line of reflection')
+    #     ahz = get_mirror_index(pattern, 1)
+    #     print(ahz)
+    #     total_part2 += ahz * 100
 
     print('find vertical line of reflection')
-    cols = []
-    coldic = {}
-    cnum = 0
+    rotated = []
     for x in range(len(pattern[0])):
-        col = ''.join([pattern[y][x] for y in range(len(pattern))])
-        if col not in coldic:
-            cnum += 1
-            coldic[col] = cnum
-        cols.append(coldic[col])
-    print(cols)
-    ltv = get_mirror_index(cols)
-    print(ltv)
-
-    total += ahz * 100
-    total += ltv
+        row = ""
+        for y in range(len(pattern)):
+            row += pattern[y][x]
+        rotated.append(row)
+    ltv = get_mirror_index(rotated, 0)
+    if ltv != 0:
+        print(ltv)
+        total_part1 += ltv
+    # else:
+    #     print('fix smudge for vertical line of reflection')
+    #     ltv = get_mirror_index(rotated, 1)
+    #     print(ltv)
+    #     total_part2 += ltv
 
     print()
 
-print('Total = ' + str(total))
+print(total_part1)
+print(total_part2)
