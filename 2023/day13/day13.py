@@ -1,31 +1,31 @@
+# credits to HyperNeutrino: https://youtu.be/GYbjIvTQ_HA?si=i69WdgTa3_NICFqc
+
 import functools
 
-def to_binary(pattern : list[str]):
-    return [int(''.join(map(lambda ch:'1' if ch=='#' else '0', line)), base=2)
-            for line in pattern]
+def rotate(pattern):
+    rotated = []
+    for x in range(len(pattern[0])):
+        row = ""
+        for y in range(len(pattern)):
+            row += pattern[y][x]
+        rotated.append(row)
+    return rotated
 
-def get_mirror_index(pattern : list[str], can_be_off_by_one : bool) -> int:
-    binpat = to_binary(pattern)
+def get_mirror_index(pattern : list[str]) -> int:
+    for r in range(1, len(pattern)):
+        above = pattern[:r][::-1]
+        below = pattern[r:]
+        
+        above = above[:len(below)]
+        below = below[:len(above)]
 
-    # for nr in binpat:
-    #     print(bin(nr)[2:].rjust(len(pattern[0]), '0') + ' - ' + str(nr))
+        if (sum(sum(0 if a == b else 1 for a, b in zip(ai, bi)) for ai, bi in zip(above, below))) == 1:
+            return r
 
-    for i in range(1, len(binpat)):
-        pairs = [(l, r) for (l, r) in zip(binpat[i - 1::-1], binpat[i:])]
-        # print(pairs)
-        diffs = [abs(l - r) for (l, r) in pairs if abs(l - r) > 0]
-        # print(diffs)
-
-        if diffs == []:
-            return i
-        if can_be_off_by_one and len(diffs) == 1:
-            diff = diffs[0]
-            if diff & (diff - 1) == 0:
-                return i
     return 0
 
 patterns = [[]]
-with open('testinput', 'r') as fin:
+with open('input', 'r') as fin:
     for line in fin:
         line = line.rstrip()
 
@@ -34,38 +34,12 @@ with open('testinput', 'r') as fin:
         else:
             patterns.append([])
 
-total_part1 = 0
-total_part2 = 0
+total = 0
 for pattern in patterns:
-    # print('find horizontal line of reflection')
-    ahz = get_mirror_index(pattern, 0)
-    if ahz != 0:
-        # print(ahz)
-        total_part1 += ahz * 100
-    else:
-        # print('fix smudge for horizontal line of reflection')
-        ahz = get_mirror_index(pattern, 1)
-        # print(ahz)
-        total_part2 += ahz * 100
+    midx = get_mirror_index(pattern)
+    total += midx * 100
 
-    # print('find vertical line of reflection')
-    rotated = []
-    for x in range(len(pattern[0])):
-        row = ""
-        for y in range(len(pattern)):
-            row += pattern[y][x]
-        rotated.append(row)
-    ltv = get_mirror_index(rotated, 0)
-    if ltv != 0:
-        # print(ltv)
-        total_part1 += ltv
-    else:
-        # print('fix smudge for vertical line of reflection')
-        ltv = get_mirror_index(rotated, 1)
-        # print(ltv)
-        total_part2 += ltv
+    midx = get_mirror_index(rotate(pattern))
+    total += midx
 
-    # print()
-
-print(total_part1)
-print(total_part2)
+print(total)

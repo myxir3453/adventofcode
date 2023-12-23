@@ -1,3 +1,5 @@
+# credits to HyperNeutrino: https://youtu.be/WCVOBKUNc38?si=0E7gFZW-K7J9jkso
+
 with open('input', 'r') as fin:
     tiles = tuple([line.rstrip() for line in fin.readlines()])
     n = len(tiles)
