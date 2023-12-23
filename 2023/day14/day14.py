@@ -28,7 +28,7 @@ total_cycles = 1000000000
 history_set = {tiles}
 history = []
 loads = []
-for ncyc in range(1000000000):
+for ncyc in range(total_cycles):
     tiles = run_cycle(tiles)
     load = get_load(tiles)
     if tiles in history_set:
@@ -42,4 +42,4 @@ cycle_start = history.index(tiles)
 cycle_length = ncyc - cycle_start
 print(cycle_start, cycle_length)
 
-print(loads[(total_cycles - cycle_start) % cycle_length + cycle_start])
+print(loads[(total_cycles - cycle_start) % cycle_length + cycle_start - 1])
